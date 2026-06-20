@@ -459,7 +459,7 @@ var K={};
 window.addEventListener('keydown',function(e){
   if(['Space','ArrowUp','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   K[e.code]=true;
-  if(gs==='title'){showCharSelect();}
+  if(gs==='title'){ if(!seenStory){showStory();}else{showCharSelect();} }
   else if(gs==='charSelect'){doStart();}
   else if(gs!=='play'){doStart();}
 });
@@ -580,23 +580,23 @@ var BG_THEMES=[
 ];
 // 盾デザイン定義（id, 名前, アイコン, 価格, 形状タイプ）
 var SHIELD_SKINS=[
-  {id:'normal', name:'ノーマル', icon:'🛡️', price:0,   shape:'normal'},
-  {id:'star',   name:'スター',   icon:'⭐', price:250, shape:'star'},
-  {id:'heart',  name:'ハート',   icon:'💗', price:250, shape:'heart'}
+  {id:'normal', name:'ノーマル', icon:'🛡️', price:0,    shape:'normal'},
+  {id:'star',   name:'スター',   icon:'⭐', price:700,  shape:'star'},
+  {id:'heart',  name:'ハート',   icon:'💗', price:2800, shape:'heart'}
 ];
 // 剣スキン定義（id, 名前, アイコン, 価格, 刃グラデ3色, 光の筋色, オーラ色）
 var SWORD_SKINS=[
-  {id:'silver', name:'銀の剣',   icon:'⚔️', price:0,   blade:['#f2f5f8','#cfd6dd','#9aa3ac'], streak:'rgba(255,255,255,0.5)', aura:null},
-  {id:'flame',  name:'炎の剣',   icon:'🔥', price:300, blade:['#fff0c0','#ff8a3c','#d22020'], streak:'rgba(255,220,140,0.9)', aura:'rgba(255,120,40,0.5)'},
-  {id:'thunder',name:'雷の剣',   icon:'⚡', price:350, blade:['#fffde0','#ffe44d','#e0a020'], streak:'rgba(255,255,200,0.9)', aura:'rgba(255,230,80,0.5)'},
-  {id:'dark',   name:'闇の剣',   icon:'🌑', price:400, blade:['#d8b0f0','#8a40c8','#3a1060'], streak:'rgba(210,160,255,0.9)', aura:'rgba(140,60,220,0.55)'}
+  {id:'silver', name:'銀の剣',   icon:'⚔️', price:0,    blade:['#f2f5f8','#cfd6dd','#9aa3ac'], streak:'rgba(255,255,255,0.5)', aura:null},
+  {id:'flame',  name:'炎の剣',   icon:'🔥', price:700,  blade:['#fff0c0','#ff8a3c','#d22020'], streak:'rgba(255,220,140,0.9)', aura:'rgba(255,120,40,0.5)'},
+  {id:'thunder',name:'雷の剣',   icon:'⚡', price:2800, blade:['#fffde0','#ffe44d','#e0a020'], streak:'rgba(255,255,200,0.9)', aura:'rgba(255,230,80,0.5)'},
+  {id:'dark',   name:'闇の剣',   icon:'🌑', price:7000, blade:['#d8b0f0','#8a40c8','#3a1060'], streak:'rgba(210,160,255,0.9)', aura:'rgba(140,60,220,0.55)'}
 ];
 // 服装スキン定義（id, 名前, アイコン, 価格, 胴体色6段グラデ / null=キャラ固有色）
 var OUTFIT_SKINS=[
-  {id:'default', name:'いつもの服', icon:'👕', price:0,   body:null},
-  {id:'gold',    name:'黄金の鎧',   icon:'🥇', price:350, body:['#fff0a0','#ffd24a','#e0a820','#c89010','#a87808','#886008']},
-  {id:'dark',    name:'漆黒の鎧',   icon:'🖤', price:350, body:['#5a5a66','#44444e','#33333a','#26262c','#1a1a20','#101014']},
-  {id:'royal',   name:'王者のローブ',icon:'👑', price:450, body:['#c890e8','#a860d8','#8e44c8','#7430b0','#5e2498','#4a1880']}
+  {id:'default', name:'いつもの服', icon:'👕', price:0,     body:null},
+  {id:'gold',    name:'黄金の鎧',   icon:'🥇', price:2800,  body:['#fff0a0','#ffd24a','#e0a820','#c89010','#a87808','#886008']},
+  {id:'dark',    name:'漆黒の鎧',   icon:'🖤', price:7000,  body:['#5a5a66','#44444e','#33333a','#26262c','#1a1a20','#101014']},
+  {id:'royal',   name:'王者のローブ',icon:'👑', price:14000, body:['#c890e8','#a860d8','#8e44c8','#7430b0','#5e2498','#4a1880']}
 ];
 // 購入済みアイテムID
 var ownedItems=(function(){
@@ -631,6 +631,8 @@ var combo=0, comboT=0; // 連続撃破コンボ
 var items=[];          // ドロップアイテム {x,y,vy,type,life,onG}
 var bossDefeated=false; // LV5ボス撃破フラグ
 var runNoDamage=true;   // 今回のプレイで無傷か（ノーダメ実績用）
+var seenStory=(store.get('yk_seen_story')==='1');  // ストーリー既読
+var seenTutorial=(store.get('yk_seen_tut')==='1'); // チュートリアル既読
 var bossClearMsg=0; // ボス撃破後の誘導メッセージ表示フレーム
 var selectedChar='KENTO'; // 選択中キャラ（KENTO/ARISA/NINA/KAMATAKU）
 
@@ -693,7 +695,7 @@ function showGameOver(){
       +'</div>'
       +achToastHTML()
       +rankingHTML(finalScore)
-      +'<div class="go">タップでリトライ</div>';
+      +'<div class="go">タップでホームに戻る</div>';
   },500);
 }
 // 新規解除した実績のトーストHTML（クリア/GameOver画面に表示）
@@ -948,6 +950,9 @@ function buildWorld(lv){
 
   // LV4以上はfireを最低2体保証（先頭2スロットに強制配置）
   var forceFire=(lv>=4)?2:0;
+  // 狭い島の地上敵を飛行に振り替える上限（地上敵の約30%まで＝飛行が増えすぎないように）
+  var maxConvert=Math.ceil(groundCount*0.30);
+  var convertedToFly=0;
 
   for(var ei2=0;ei2<totalN;ei2++){
     // ★ステージ全体に均等配置（前半・中盤・後半をまんべんなくカバー）
@@ -957,6 +962,20 @@ function buildWorld(lv){
     var ex=base+jitter;
     ex=Math.max(ENE_START, Math.min(GOAL_X-ENE_END, ex));
     var isFlying=(ei2>=groundCount);
+
+    // ★狭い足場チェック：穴に挟まれた狭い陸地に置く地上敵だけ飛行系に振り替える
+    //   （そこだと確定ダメージ＋折り返し多発のため。通常の段差・起伏は地上敵のまま）
+    if(!isFlying && convertedToFly<maxConvert){
+      var gyHere=getGroundY(ex);
+      var standOnGround=(gyHere<=GROUND+10); // 足場の上にいる
+      if(standOnGround){
+        // 敵の足場が「狭い島」か判定：左右やや離れた位置が両方とも穴（落下）なら狭い島
+        var farL=getGroundY(ex-60), farR=getGroundY(ex+60);
+        var holeL=(farL>GROUND+10), holeR=(farR>GROUND+10);
+        // 両側が穴に挟まれた狭い足場 → 飛行に振り替え
+        if(holeL && holeR){ isFlying=true; convertedToFly++; }
+      }
+    }
 
     if(!isFlying){
       var onH=holes.some(function(h){return ex>h.x-55&&ex<h.x+h.w+55;});
@@ -1054,13 +1073,29 @@ function buildWorld(lv){
     }
   }
 }
-// 地上敵が穴に落ちないよう前方チェック（落ちそうなら折り返す）
+// 地上敵が穴に落ちないよう前方チェック（落ちそうなら穴と反対へ向ける）
 function checkHole(ent, vx){
-  if(!ent.onG) return vx;
-  var checkX = vx<0 ? ent.x-55 : ent.x+ent.w+55;
-  var gy = getGroundY(checkX);
-  if(gy > GROUND+10) return -vx; // 穴があれば折り返し
-  return vx;
+  var gyNow=getGroundY(ent.x+ent.w/2);
+  var nearGround=(ent.y+ent.h <= gyNow+20);
+  if(!ent.onG && !nearGround) return vx;
+  var spd=Math.abs(vx)||1;
+  // 進行方向の前方に穴があるか
+  var aheadX = vx<0 ? ent.x-50 : ent.x+ent.w+50;
+  var aheadHole=(getGroundY(aheadX) > GROUND+10);
+  if(!aheadHole){
+    if(ent.turnCD>0) ent.turnCD--;
+    return vx; // 前方に穴なし＝そのまま進む
+  }
+  // 前方に穴あり → 反対側を確認
+  var backX = vx<0 ? ent.x+ent.w+50 : ent.x-50;
+  var backHole=(getGroundY(backX) > GROUND+10);
+  ent.turnCD=18;
+  if(backHole){
+    // 両側とも穴（狭い島）→ 動かず留まる（落ちない）
+    return 0;
+  }
+  // 反対側は安全 → そちらへ向ける
+  return vx<0 ? spd : -spd;
 }
 
 // 指定X座標の地面Y取得（地形対応）
@@ -1402,7 +1437,8 @@ function _showGenderStep(){
       +'</div>';
   });
   html+='</div>'
-    +'<div class="press" id="nextBtn" style="font-size:12px">次へ ▶</div>';
+    +'<div class="press" id="nextBtn" style="font-size:12px">次へ ▶</div>'
+    +'<div id="genderHomeBtn" style="margin-top:14px;color:#888;font-size:11px;cursor:pointer;padding:6px 14px;border:1px solid rgba(255,255,255,0.2);border-radius:6px">◀ ホームに戻る</div>';
   ov.innerHTML=html;
   ov.style.display='flex';
   setTimeout(function(){
@@ -1424,6 +1460,13 @@ function _showGenderStep(){
         SELECT_STEP=2; _showFaceStep(); }
       nb.addEventListener('touchstart',goNext,{passive:false});
       nb.addEventListener('click',goNext);
+    }
+    var ghb=document.getElementById('genderHomeBtn');
+    if(ghb){
+      function goHome(e){ e.stopPropagation(); if(e.cancelable)e.preventDefault();
+        gs='title'; showTitleScreen(); }
+      ghb.addEventListener('touchstart',goHome,{passive:false});
+      ghb.addEventListener('click',goHome);
     }
   },50);
 }
@@ -1818,15 +1861,20 @@ function doStart(){
   resetP(false);
   buildWorld(level);
   cam=0; fr=0;
-  gs='play';
-  ov.style.display='none';
   _btnState={bg:null,blas:null,bj:null,ba:null}; // ボタン状態をリセット（スキル0から再適用）
   runNoDamage=true;          // ノーダメ判定開始
   statSet('runGold',0);      // 今回稼いだコインをリセット
   markCharPlayed(selectedChar); // プレイ済みキャラ記録（全キャラ制覇実績）
   checkAchievements();       // 全キャラ制覇など即時チェック
   updHUD();
-  bgmStart();
+  if(!seenTutorial){
+    // 初回：チュートリアルを表示（見終わったらplay開始）
+    tutStep=0; showTutorial();
+  } else {
+    gs='play';
+    ov.style.display='none';
+    bgmStart();
+  }
 }
 
 function restartStage(){
@@ -1859,7 +1907,7 @@ function nextLevel(){
     saveData();
     ov.style.display='flex';
     ov.innerHTML='<h2>ALL CLEAR!</h2><div class="sub">SCORE: <b style="color:#ffe44d;font-size:20px">'+Math.floor(score)+'</b>'
-      +'<br>BEST: <b style="color:#ffcc44">'+bestScore+'</b></div>'+achToastHTML()+'<div class="go">タップでリスタート</div>';
+      +'<br>BEST: <b style="color:#ffcc44">'+bestScore+'</b></div>'+achToastHTML()+'<div class="go">タップでホームに戻る</div>';
     return;
   }
   checkAchievements();  // ステージクリアごとに実績チェック
@@ -4307,16 +4355,7 @@ function draw(){
     ctx.restore();
   }
 
-  // ポーズ画面
-  if(gs==='paused'){
-    ctx.save();
-    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#fff'; ctx.font='bold 26px Arial'; ctx.textAlign='center';
-    ctx.fillText('⏸ PAUSED',W/2,H/2-10);
-    ctx.font='13px Arial'; ctx.fillStyle='#ccc';
-    ctx.fillText('画面タップで再開',W/2,H/2+18);
-    ctx.restore();
-  }
+  // ポーズ画面はHTMLメニュー(showPauseMenu)で表示
 
   // スキャンライン
   ctx.fillStyle='rgba(0,0,0,.03)';
@@ -4403,7 +4442,10 @@ ov.addEventListener('touchstart',function(e){
   else if(gs==='levelup'){gs='play';ov.style.display='none';bgmRestart();}
   else if(gs==='charSelect'){ /* ステップ内ボタンで管理 */ }
   else if(gs==='ranking'){ /* ランキング画面は戻るボタンで管理 */ }
-  else if(gs==='title'){SELECT_STEP=1;showCharSelect();}
+  else if(gs==='story'){ advanceStory(); }
+  else if(gs==='tutorial'){ advanceTutorial(); }
+  else if(gs==='title'){ if(!seenStory){showStory();}else{SELECT_STEP=1;showCharSelect();} }
+  else if(gs==='dead'||gs==='clear'){ gs='title'; showTitleScreen(); }
   else if(gs!=='play'){doStart();}
 },{passive:false});
 ov.addEventListener('click',function(e){
@@ -4412,11 +4454,120 @@ ov.addEventListener('click',function(e){
   else if(gs==='levelup'){gs='play';ov.style.display='none';bgmRestart();}
   else if(gs==='charSelect'){ /* ステップ内ボタンで管理 */ }
   else if(gs==='ranking'){ /* ランキング画面は戻るボタンで管理 */ }
-  else if(gs==='title'){SELECT_STEP=1;showCharSelect();}
+  else if(gs==='story'){ advanceStory(); }
+  else if(gs==='tutorial'){ advanceTutorial(); }
+  else if(gs==='title'){ if(!seenStory){showStory();}else{SELECT_STEP=1;showCharSelect();} }
+  else if(gs==='dead'||gs==='clear'){ gs='title'; showTitleScreen(); }
   else if(gs!=='play'){doStart();}
 });
 
 // ===== ランキング表示画面 =====
+// ===== ストーリー導入（オープニング）=====
+var STORY_PAGES=[
+  {icon:'🏰', text:'むかしむかし、平和な王国がありました。'},
+  {icon:'🐉', text:'ある日、魔王ドラゴンが現れ\n国を炎で包みました。'},
+  {icon:'😱', text:'人々は逃げ惑い、王様は助けを求めます。'},
+  {icon:'⚔️', text:'「勇者よ、立ち上がれ！」\n8人の勇者たちが集いました。'},
+  {icon:'✨', text:'コインを集め、スキルを磨き\n強くなって魔王に挑むのだ！'},
+  {icon:'🔥', text:'さあ、君だけの勇者を選んで\n魔王ドラゴンを討伐せよ！'}
+];
+var storyPage=0;
+function showStory(){
+  gs='story';
+  var pg=STORY_PAGES[storyPage];
+  var h='<div style="font-size:64px;margin-bottom:18px">'+pg.icon+'</div>'
+    +'<div style="color:#fff;font-size:16px;line-height:1.7;font-weight:bold;white-space:pre-line;max-width:300px;margin-bottom:24px">'+pg.text+'</div>'
+    +'<div style="display:flex;gap:6px;margin-bottom:18px">';
+  for(var i=0;i<STORY_PAGES.length;i++){
+    h+='<div style="width:8px;height:8px;border-radius:50%;background:'+(i===storyPage?'#ffd24a':'rgba(255,255,255,0.3)')+'"></div>';
+  }
+  h+='</div>'
+    +'<div class="press" style="font-size:13px">▶ タップで'+(storyPage<STORY_PAGES.length-1?'つづき':'勇者を選ぶ')+' ◀</div>'
+    +'<div id="storySkip" style="margin-top:14px;color:#888;font-size:11px;cursor:pointer">スキップ</div>';
+  ov.innerHTML=h;
+  ov.style.display='flex';
+  setTimeout(function(){
+    var sk=document.getElementById('storySkip');
+    if(sk){
+      function skip(e){ e.stopPropagation(); if(e.cancelable)e.preventDefault(); endStory(); }
+      sk.addEventListener('touchstart',skip,{passive:false});
+      sk.addEventListener('click',skip);
+    }
+  },30);
+}
+function advanceStory(){
+  storyPage++;
+  if(storyPage>=STORY_PAGES.length){ endStory(); }
+  else { showStory(); }
+}
+function endStory(){
+  storyPage=0;
+  seenStory=true; store.set('yk_seen_story','1');
+  SELECT_STEP=1; showCharSelect();
+}
+
+// ===== チュートリアル（初回のみ操作ガイド）=====
+var TUT_STEPS=[
+  {ic:'move',  title:'移動', text:'左右ボタンで歩く'},
+  {ic:'jump',  title:'ジャンプ', text:'青ボタンでジャンプ！\n穴を飛び越えよう'},
+  {ic:'atk',   title:'こうげき', text:'赤ボタンで剣をふる\n敵を倒そう'},
+  {ic:'coin',  title:'コイン', text:'コインを集めると\nスキルが解放される！'},
+  {ic:'goal',  title:'ゴール', text:'右はじのゴールを目指せ！\nがんばって⚔️'}
+];
+// チュートリアル用アイコン（実ゲームのボタン・コインと同じデザインのHTML）
+function tutIconHTML(ic){
+  var btn='display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;border:3px solid rgba(255,255,255,0.92);box-shadow:0 5px 0 rgba(0,0,0,0.22),0 7px 12px rgba(0,0,0,0.4),0 -4px 9px rgba(0,0,0,0.18) inset;';
+  var svgArrowR='<svg viewBox="0 0 24 24" width="30" height="30" fill="none"><path d="M9.5 6 Q8.2 6 8.5 7.5 L12.5 12 L8.5 16.5 Q8.2 18 9.5 18 Q10.5 18 11 17.3 L15.4 12.8 Q16 12 15.4 11.2 L11 6.7 Q10.5 6 9.5 6 Z" fill="#fff" stroke="rgba(0,0,0,0.18)" stroke-width="0.8"/></svg>';
+  var svgArrowL='<svg viewBox="0 0 24 24" width="30" height="30" fill="none"><path d="M14.5 6 Q15.8 6 15.5 7.5 L11.5 12 L15.5 16.5 Q15.8 18 14.5 18 Q13.5 18 13 17.3 L8.6 12.8 Q8 12 8.6 11.2 L13 6.7 Q13.5 6 14.5 6 Z" fill="#fff" stroke="rgba(0,0,0,0.18)" stroke-width="0.8"/></svg>';
+  var svgJump='<svg viewBox="0 0 24 24" width="30" height="30" fill="none"><path d="M12 5 Q12.9 5 13.5 5.7 L18.6 11.2 Q19.4 12 18.4 12.6 Q17.6 13 16.8 12.4 L14.3 10 L14.3 18 Q14.3 19.2 13 19.2 L11 19.2 Q9.7 19.2 9.7 18 L9.7 10 L7.2 12.4 Q6.4 13 5.6 12.6 Q4.6 12 5.4 11.2 L10.5 5.7 Q11.1 5 12 5 Z" fill="#fff" stroke="rgba(0,0,0,0.2)" stroke-width="0.9" stroke-linejoin="round"/></svg>';
+  var svgAtk='<svg viewBox="0 0 24 24" width="30" height="30" fill="none"><g stroke="rgba(0,0,0,0.2)" stroke-width="0.9" stroke-linejoin="round"><path d="M18.2 4 Q19.8 3.6 20 5.2 Q20.2 6.6 19.2 7.4 L12.5 14 L10 11.5 L16.6 5 Q17.2 4.2 18.2 4 Z" fill="#fff"/><rect x="5.5" y="14.5" width="5.5" height="3" rx="1.5" transform="rotate(45 8.2 16)" fill="#ffd24d"/><path d="M4 17 Q3.4 19.4 5.6 19.6 L7.5 17.7 L6 16.2 Z" fill="#fff"/></g></svg>';
+  var gray='background:radial-gradient(circle at 40% 32%,#9aa4b0 0%,#6a7480 45%,#4a525c 100%);';
+  var blue='background:radial-gradient(circle at 40% 30%,#8fd0ff 0%,#3d9bf0 45%,#1f6dd8 100%);';
+  var red='background:radial-gradient(circle at 40% 30%,#ff9a9a 0%,#f04d4d 45%,#d02020 100%);';
+  if(ic==='move'){
+    return '<div style="display:flex;gap:10px;justify-content:center"><div style="'+btn+gray+'">'+svgArrowL+'</div><div style="'+btn+gray+'">'+svgArrowR+'</div></div>';
+  } else if(ic==='jump'){
+    return '<div style="'+btn+blue+'">'+svgJump+'</div>';
+  } else if(ic==='atk'){
+    return '<div style="'+btn+red+'">'+svgAtk+'</div>';
+  } else if(ic==='coin'){
+    // ゲーム内コインと同じ金色＋$＋グロー
+    return '<div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#fff8aa 0%,#ffe44d 45%,#f0b800 100%);box-shadow:0 0 16px rgba(255,228,77,0.8),0 4px 8px rgba(0,0,0,0.3);color:#c8a800;font-weight:bold;font-size:30px;font-family:monospace">$</div>';
+  } else { // goal
+    return '<div style="display:inline-flex;align-items:center;justify-content:center;font-size:46px">🏁</div>';
+  }
+}
+var tutStep=0;
+function showTutorial(){
+  gs='tutorial';
+  var t=TUT_STEPS[tutStep];
+  var h='<div style="background:rgba(20,24,40,0.96);border:2px solid #ffd24a;border-radius:16px;padding:22px 24px;max-width:280px">'
+    +'<div style="margin-bottom:14px;min-height:58px;display:flex;align-items:center;justify-content:center">'+tutIconHTML(t.ic)+'</div>'
+    +'<div style="color:#ffd24a;font-size:17px;font-weight:bold;margin-bottom:8px">'+t.title+'</div>'
+    +'<div style="color:#fff;font-size:14px;line-height:1.6;white-space:pre-line;margin-bottom:16px">'+t.text+'</div>'
+    +'<div style="display:flex;gap:5px;justify-content:center;margin-bottom:14px">';
+  for(var i=0;i<TUT_STEPS.length;i++){
+    h+='<div style="width:7px;height:7px;border-radius:50%;background:'+(i===tutStep?'#ffd24a':'rgba(255,255,255,0.3)')+'"></div>';
+  }
+  h+='</div>'
+    +'<div class="press" style="font-size:13px;margin:0">▶ タップで'+(tutStep<TUT_STEPS.length-1?'つぎへ':'スタート')+'</div>'
+    +'</div>';
+  ov.innerHTML=h;
+  ov.style.display='flex';
+}
+function advanceTutorial(){
+  tutStep++;
+  if(tutStep>=TUT_STEPS.length){ endTutorial(); }
+  else { showTutorial(); }
+}
+function endTutorial(){
+  tutStep=0;
+  seenTutorial=true; store.set('yk_seen_tut','1');
+  gs='play';
+  ov.style.display='none';
+  bgmStart();
+}
+
 function showRanking(){
   gs='ranking';
   var names={men_0:'ルーベルト',men_1:'バルト',men_2:'ジルヴェスター',men_3:'ユリアン',women_0:'クララ',women_1:'エルザ',women_2:'メルティ',women_3:'ブリギッタ'};
@@ -4591,21 +4742,64 @@ function togglePause(){
   var n=Date.now();
   if(n-_lastPauseT<350) return; // touchstart+click二重発火ガード
   _lastPauseT=n;
-  if(gs==='play'){ gs='paused'; bgmStop(); }
-  else if(gs==='paused'){ gs='play'; bgmStart(); }
+  if(gs==='play'){ gs='paused'; bgmStop(); showPauseMenu(); }
+  else if(gs==='paused'){ gs='play'; hidePauseMenu(); bgmStart(); }
+}
+// ポーズメニュー（再開＋ホームに戻る）
+function showPauseMenu(){
+  ov.innerHTML='<div style="font-size:30px;font-weight:bold;color:#fff;letter-spacing:2px;margin-bottom:6px">⏸ PAUSED</div>'
+    +'<div style="color:#bbb;font-size:13px;margin-bottom:24px">下のボタンで操作</div>'
+    +'<div id="pauseResume" style="color:#222;background:#ffd24a;font-size:15px;font-weight:bold;cursor:pointer;border-radius:10px;padding:11px 32px;margin-bottom:12px">▶ 再開する</div>'
+    +'<div id="pauseHome" style="color:#ff5555;font-size:14px;font-weight:bold;cursor:pointer;border:1.5px solid rgba(255,85,85,0.6);border-radius:10px;padding:9px 26px;background:rgba(255,85,85,0.08)">🏠 ホームに戻る</div>';
+  ov.style.display='flex';
+  setTimeout(function(){
+    var rb=document.getElementById('pauseResume');
+    if(rb){
+      function resume(e){ e.stopPropagation(); if(e.cancelable)e.preventDefault(); togglePause(); }
+      rb.addEventListener('touchstart',resume,{passive:false});
+      rb.addEventListener('click',resume);
+    }
+    var hb=document.getElementById('pauseHome');
+    if(hb){
+      function home(e){ e.stopPropagation(); if(e.cancelable)e.preventDefault(); confirmHome(); }
+      hb.addEventListener('touchstart',home,{passive:false});
+      hb.addEventListener('click',home);
+    }
+  },30);
+}
+function hidePauseMenu(){ ov.style.display='none'; ov.innerHTML=''; }
+// ホームに戻る確認ダイアログ
+function confirmHome(){
+  ov.innerHTML='<div style="font-size:34px;margin-bottom:14px">🏠</div>'
+    +'<div style="color:#fff;font-size:16px;font-weight:bold;line-height:1.6;margin-bottom:8px">ホームに戻りますか？</div>'
+    +'<div style="color:#ff9999;font-size:12px;margin-bottom:24px;max-width:280px;line-height:1.5">いまのプレイは終了します。<br>スコアやコインは記録されません。</div>'
+    +'<div id="homeYes" style="color:#fff;background:#d83838;font-size:15px;font-weight:bold;cursor:pointer;border-radius:10px;padding:11px 32px;margin-bottom:12px">🏠 ホームに戻る</div>'
+    +'<div id="homeNo" style="color:#fff;font-size:14px;font-weight:bold;cursor:pointer;border:1.5px solid rgba(255,255,255,0.3);border-radius:10px;padding:9px 30px">◀ つづける</div>';
+  ov.style.display='flex';
+  setTimeout(function(){
+    var yes=document.getElementById('homeYes');
+    if(yes){
+      function goHome(e){ e.stopPropagation(); if(e.cancelable)e.preventDefault(); bgmStop(); gs='title'; showTitleScreen(); }
+      yes.addEventListener('touchstart',goHome,{passive:false});
+      yes.addEventListener('click',goHome);
+    }
+    var no=document.getElementById('homeNo');
+    if(no){
+      function back(e){ e.stopPropagation(); if(e.cancelable)e.preventDefault(); showPauseMenu(); }
+      no.addEventListener('touchstart',back,{passive:false});
+      no.addEventListener('click',back);
+    }
+  },30);
 }
 var hPauseBtn=document.getElementById('hPause');
 if(hPauseBtn){
   hPauseBtn.addEventListener('touchstart',function(e){e.preventDefault();togglePause();},{passive:false});
   hPauseBtn.addEventListener('click',function(e){togglePause();});
 }
-// ポーズ中はキャンバスタップでも再開
+// ポーズ中はHTMLメニューのボタンで操作（キャンバスタップでの再開は無効）
 cv.addEventListener('touchstart',function(e){
-  if(gs==='paused'){ e.preventDefault(); togglePause(); }
+  if(gs==='paused'){ e.preventDefault(); }
 },{passive:false});
-cv.addEventListener('click',function(e){
-  if(gs==='paused'){ togglePause(); }
-});
 
 loop();
 }catch(__bootErr){
